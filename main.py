@@ -2,38 +2,36 @@ from typing import Union
 
 from fastapi import FastAPI
 
+import os
+import cohere
+import pandas as pd
+from IPython.display import clear_output
+
+os.environ['COHERE_API_KEY'] = 'yARQQpDOyath4wS5cphHJooAbgUQslMTaT6gEmyP'
+co = cohere.Client(api_key=os.getenv('COHERE_API_KEY'))
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv())
+
+
 app = FastAPI()
 @app.get("/")
 def read_root():
-    import os
-    import cohere
-    os.environ['COHERE_API_KEY'] = 'yARQQpDOyath4wS5cphHJooAbgUQslMTaT6gEmyP'
-    co = cohere.Client(api_key=os.getenv('COHERE_API_KEY'))
-    from dotenv import load_dotenv, find_dotenv
-    _ = load_dotenv(find_dotenv())
     def get_completion(prompt, temp=0):
         response = co.generate(
             model='command-r-plus',
             prompt=prompt,
-            max_tokens=200,
+            max_tokens=5000,
             temperature=temp)
         return response.generations[0].text
         
-    Apex_Data = f"""Feature,Status,Point_of_contact,Comment
-    Decimal Precision,In Progress,Murali,50% Complete
-    CREF Description Update,Completed,Hamesh,Completed Last week
-    Apex Project,Not Started,Sangeetha,Will start next week"""
-    User_Inquiry = input("Enter your query : ")
-    prompt = f"""{User_Inquiry} from {Apex_Data}
-    Give in the following format
-    Decimal Precision Feature is 'In Progress'
-    Point of Contact for this feature is Hamesh
-    As of now 50% is complete
+    Apex_Data = f"""Tools_Release, Tools_Build, Feature,Status,Point_of_contact,P1_Bugs, P2_Bugs,P1_Bugs_Unfixed, P2_Bugs_Unfixed,Comment
+    8.61, 132W, Decimal Precision,In Progress,Murali,4,6,1,3,50% Complete
+    8.62, 120W, CREF Description Update,Completed,Hamesh,1,3,1,1,Completed Last week
+    8.62, 114W, Apex Project,Not Started,Sangeetha,0,0,0,0,Will start next week
+    8.63, 102R, Fluid Grid Personalization,On Hold,Balaji,5,1,1,1,Tools environment is not stable
+    8.61, 902W, OpenSearch enhancements, Completed,Samudrip,5,6,4,6,Completed with delay.
+    8.61, 140W, Homepage Refresh, Completed, Sangeetha, 1,1,0,0, 
     """
-
-response = get_completion(prompt, temp=0.5)
-print(response)
-return(response)
 
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: Union[str, None] = None):
